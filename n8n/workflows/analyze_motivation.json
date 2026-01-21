@@ -1,0 +1,151 @@
+{
+  "name": "analyze_motivation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "analyze-motivation",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "city_a",
+              "value": "={{$json[\"city_a\"]}}"
+            },
+            {
+              "name": "city_b",
+              "value": "={{$json[\"city_b\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Extract Cities",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8080/api/documents/sources",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "cityA",
+              "value": "={{$json[\"city_a\"]}}"
+            },
+            {
+              "name": "cityB",
+              "value": "={{$json[\"city_b\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Load Source Documents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "jsonParameters": true,
+        "options": {
+          "timeout": 60000
+        },
+        "bodyParametersJson": "={{ {\n  \"model\": \"qwen3-coder:30b\",\n  \"prompt\": `Analysiere die Motivation der Städtepartnerschaft zwischen ${$json.city_a} und ${$json.city_b} auf Basis der folgenden Texte. Trenne Fakten und Interpretation und gib Unsicherheiten explizit an.\\n\\n${$json.documents}`,\n  \"stream\": false\n} }}"
+      },
+      "name": "Analyze Motivation (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    cityA: $json.city_a,\n    cityB: $json.city_b,\n    analysis: $json.response\n  }\n}];"
+      },
+      "name": "Prepare Analysis Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8080/api/analysis/motivation",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      },
+      "name": "Persist Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Cities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Cities": {
+      "main": [
+        [
+          {
+            "node": "Load Source Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Source Documents": {
+      "main": [
+        [
+          {
+            "node": "Analyze Motivation (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Motivation (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Analysis Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Analysis Result": {
+      "main": [
+        [
+          {
+            "node": "Persist Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "name": "research_city",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "research-city",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "city",
+              "value": "={{$json[\"city\"]}}"
+            },
+            {
+              "name": "language",
+              "value": "={{$json[\"language\"] || \"de\"}}"
+            }
+          ]
+        }
+      },
+      "name": "Extract Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.wikidata.org/w/api.php",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "action", "value": "wbsearchentities" },
+            { "name": "search", "value": "={{$json.city}}" },
+            { "name": "language", "value": "={{$json.language}}" },
+            { "name": "format", "value": "json" }
+          ]
+        }
+      },
+      "name": "Search Wikidata",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ {\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": `Recherchiere öffentlich zugängliche Informationen über die Stadt ${$json.city}, insbesondere Städtepartnerschaften, historische Hintergründe und internationale Beziehungen. Nenne die Quellen explizit.`\n    }]\n  }]\n} }}"
+      },
+      "name": "Web Research (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{\n  json: {\n    city: $json.city,\n    sources: [\n      { type: 'wikidata', payload: $items(\"Search Wikidata\")[0].json },\n      { type: 'gemini', payload: $items(\"Web Research (Gemini)\")[0].json }\n    ],\n    retrievedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Aggregate Sources",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8080/api/documents/sources",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      },
+      "name": "Persist Raw Documents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1100, 300]
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Parameters": {
+      "main": [
+        [
+          {
+            "node": "Search Wikidata",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Web Research (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Wikidata": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Research (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Sources": {
+      "main": [
+        [
+          {
+            "node": "Persist Raw Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

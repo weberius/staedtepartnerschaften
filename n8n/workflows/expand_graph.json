@@ -1,0 +1,140 @@
+{
+  "name": "expand_graph",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "expand-graph",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "name": "Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "city",
+              "value": "={{$json[\"city\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Extract City",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.wikidata.org/w/api.php",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "action", "value": "wbsearchentities" },
+            { "name": "search", "value": "={{$json.city}}" },
+            { "name": "language", "value": "de" },
+            { "name": "format", "value": "json" }
+          ]
+        }
+      },
+      "name": "Resolve City (Wikidata)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8080/api/wikidata/partnerships",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      },
+      "name": "Fetch Partnerships",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return $json.partnerships.map(p => ({ json: p }));"
+      },
+      "name": "Normalize Partnerships",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backend:8080/api/graph/merge",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{$json}}"
+      },
+      "name": "Persist Graph Entities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract City",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract City": {
+      "main": [
+        [
+          {
+            "node": "Resolve City (Wikidata)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve City (Wikidata)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Partnerships",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Partnerships": {
+      "main": [
+        [
+          {
+            "node": "Normalize Partnerships",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Partnerships": {
+      "main": [
+        [
+          {
+            "node": "Persist Graph Entities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
