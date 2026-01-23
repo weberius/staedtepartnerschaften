@@ -16,5 +16,12 @@
     "vscode": {
       "extensions": []
     }
+  },
+  "mounts": [],
+  "remoteEnv": {
+    "DISPLAY": null
+  },
+  "containerEnv": {
+    "WAYLAND_DISPLAY": null
   }
 }
