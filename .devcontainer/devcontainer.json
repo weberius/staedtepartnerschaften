@@ -1,0 +1,20 @@
+{
+  "name": "isolated-ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspaces/staedtepartnerschaften",
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges:true"
+  ],
+  "features": {},
+  "hostRequirements": {
+    "gpu": false
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
