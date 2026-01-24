@@ -8,6 +8,7 @@ RUN apt update && \
         openjdk-21-jdk \
         ca-certificates \
         curl \
+        docker-compose \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20.x and npm

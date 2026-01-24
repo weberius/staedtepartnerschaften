@@ -19,7 +19,8 @@
         "eamodio.gitlens",
         "mhutchie.git-graph",
         "fwcd.kotlin",
-        "continue.continue"
+        "continue.continue",
+        "ms-azuretools.vscode-docker"
       ]
     }
   },
