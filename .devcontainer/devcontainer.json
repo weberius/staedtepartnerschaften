@@ -14,7 +14,13 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": []
+      "extensions": [
+        "bierner.markdown-mermaid",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "fwcd.kotlin",
+        "continue.continue"
+      ]
     }
   },
   "mounts": [],
