@@ -24,7 +24,9 @@
       ]
     }
   },
-  "mounts": [],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
   "remoteEnv": {
     "DISPLAY": null
   },
