@@ -1,6 +1,8 @@
 # KI-gestützte Orchestrierung von Wissensgraphen  
 ## Eine explorative Studie am Beispiel von Städtepartnerschaften
 
+> **Anmerkung:** Das Projekt befindet sich in der Entwicklung. Es sind nur die Grundlagen gelegt. Das Auschecken und Ausführen führt nicht zu einem lauffähigen System.
+
 ## Überblick
 
 Dieses Repository enthält den Code, die Workflows und die begleitende Dokumentation einer Studie, die untersucht, **wie n8n, generative KI (Gemini, lokale LLMs) und Graphdatenbanken** zur orchestrierten Wissensgenerierung eingesetzt werden können.
