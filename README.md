@@ -36,6 +36,7 @@ Die Studie verfolgt folgende Ziele:
 ├─ infra/             # Lokales Setup (Docker, Compose)
 ├─ docs/              # Vision, Methodik, Limitationen
 └─ README.md
+```
 
 ## devcontainer
 
