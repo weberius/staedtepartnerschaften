@@ -30,7 +30,7 @@ RUN apt update && apt install -y \
     docker-compose-plugin \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js 20
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Node.js 22 LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
